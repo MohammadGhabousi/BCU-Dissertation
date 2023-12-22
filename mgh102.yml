@@ -1,0 +1,25 @@
+---
+- name: Check QNG Process
+  hosts: web_servers
+  become: true
+
+  tasks:
+    - name: Get QNG Process Information
+      shell: ps aux | grep qng
+      register: qng_process_info
+      ignore_errors: true
+
+    - name: Display QNG Process Information
+      debug:
+        var: item
+      with_items: "{{ qng_process_info.stdout_lines }}"
+      when: "' 0:00 ' not in item"
+
+    - name: Store QNG Processes with Elapsed Time Not 0
+      set_fact:
+        qng_processes_elapsed_not_zero: "{{ qng_process_info.stdout_lines | reject('search', ' 0:00 ') | list }}"
+
+    - name: Display QNG Processes with Elapsed Time Not 0
+      debug:
+        var: qng_processes_elapsed_not_zero
+
